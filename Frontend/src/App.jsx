@@ -2,7 +2,7 @@ import {
   BrowserRouter,
   Route,
   Routes,
-} from "react-router";
+} from "react-router-dom";
 
 import RegisterPage from "./pages/Registrations/RegisterPage";
 import LoginPage from "./pages/Registrations/LoginPage";
@@ -13,6 +13,7 @@ import { Footer } from "./pages/Footer";
 import Aboutpage from "./pages/Aboutpage";
 import Contactpage from "./pages/Contactpage";
 import Cartpage from "./pages/Cartpage";
+import ProductDetail from "./components/products/ProductDetailed";
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
         <Route path="/cart" element={<Cartpage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/productdetails/:id" element={<ProductDetail />} />
       </Routes>
       <Footer />
     </BrowserRouter>

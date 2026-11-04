@@ -228,6 +228,29 @@ class ProxyProductListView(APIView):
         )
 
 
+# ── PROXY PRODUCT DETAIL ───────────────────────
+
+
+class ProxyProductDetailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        try:
+            res = req.get(f"https://dummyjson.com/products/{pk}", timeout=10)
+            if res.status_code == 404:
+                return Response(
+                    {"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+
+            data = res.json()
+            return Response(data)
+        except Exception:
+            return Response(
+                {"error": "Failed to fetch product detail"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class ProxyCategoryListView(APIView):
     permission_classes = [AllowAny]
 

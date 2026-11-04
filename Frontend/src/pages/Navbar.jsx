@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Menu, X, Search } from "lucide-react";
 
 export default function Navbar() {

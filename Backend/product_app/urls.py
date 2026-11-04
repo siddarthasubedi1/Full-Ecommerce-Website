@@ -7,6 +7,7 @@ from .views import (
     ProductListCreateView,
     ProductDetailView,
     ProxyProductListView,
+    ProxyProductDetailView,
     ProxyCategoryListView,
     ProxyBrandListView,
 )
@@ -17,6 +18,11 @@ urlpatterns = [
     path("brands/", BrandListCreateView.as_view(), name="brand-list"),
     path("brands/<int:pk>/", BrandDetailView.as_view(), name="brand-detail"),
     path("proxy/", ProxyProductListView.as_view(), name="proxy-products"),
+    path(
+        "proxy/<int:pk>/",
+        ProxyProductDetailView.as_view(),
+        name="proxy-productdetails",
+    ),
     path("proxy/categories/", ProxyCategoryListView.as_view(), name="proxy-categories"),
     path("proxy/brands/", ProxyBrandListView.as_view(), name="proxy-brands"),
     path("", ProductListCreateView.as_view(), name="product-list"),

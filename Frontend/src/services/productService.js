@@ -24,6 +24,8 @@ export const getAllProducts = async (filters = {}) => {
     const data = await getJSON(url);
     return data.results ?? [];
 };
+//get single product details by id 
+export const getProductById = (id) => getJSON(`${BASE_URL}/product/proxy/${id}/`)
 
 // Categories from DummyJSON via Django proxy
 export const getCategories = () => getJSON(`${BASE_URL}/product/proxy/categories/`);

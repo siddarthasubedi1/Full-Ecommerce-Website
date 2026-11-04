@@ -186,7 +186,7 @@
 // export default Top;
 
 
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import bag from "../../assets/bag-home.jpg";
 import { ChevronRight, BadgeCheck, Wallet, RotateCcw, Headset, Truck, ShieldCheck } from "lucide-react";
 
