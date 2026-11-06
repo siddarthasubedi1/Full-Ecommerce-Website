@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "product_app",
     "account",
+    "cart",
 ]
 
 

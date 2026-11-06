@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Menu, X, Search } from "lucide-react";
+import { getCart } from "../services/cartService";
 
 export default function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const navigate = useNavigate();
+
+    const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
         const checkAuth = () => {
@@ -19,6 +22,40 @@ export default function Navbar() {
             window.removeEventListener("auth-changed", checkAuth);
         };
     }, []);
+
+
+    useEffect(() => {
+        let active = true;
+
+        const loadCartCount = async () => {
+            if (!localStorage.getItem("access")) {
+                if (active) setCartCount(0);
+                return;
+            }
+
+            try {
+                const data = await getCart();
+
+                if (active) {
+                    setCartCount(data.total_quantity);
+                }
+            } catch {
+                if (active) setCartCount(0);
+            }
+        };
+
+        loadCartCount();
+
+        window.addEventListener("cart-changed", loadCartCount);
+        window.addEventListener("auth-changed", loadCartCount);
+
+        return () => {
+            active = false;
+            window.removeEventListener("cart-changed", loadCartCount);
+            window.removeEventListener("auth-changed", loadCartCount);
+        };
+    }, []);
+
 
     const handleLogout = () => {
         localStorage.removeItem("access");
@@ -50,7 +87,22 @@ export default function Navbar() {
                 </nav>
                 <div className="hidden items-center gap-4 md:flex">
                     <Link to="/product" aria-label="Browse products" className="text-slate-700 hover:text-red-700"><Search size={21} /></Link>
-                    <Link to="/cart" aria-label="Shopping cart" className="text-slate-700 hover:text-red-700"><ShoppingCart size={22} /></Link>
+
+                    <Link
+                        to="/cart"
+                        aria-label={`Shopping cart with ${cartCount} items`}
+                        className="relative text-slate-700 hover:text-red-700"
+                    >
+                        <ShoppingCart size={22} />
+
+                        {cartCount > 0 && (
+                            <span className="absolute -top-3 -right-3 bg-red-600 text-white text-xs font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+                                {cartCount}
+                            </span>
+                        )}
+                    </Link>
+
+
                     {isLoggedIn ? (
                         <button onClick={handleLogout} className="rounded-lg border-2 border-red-600 px-5 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-600 hover:text-white">Logout</button>
                     ) : (

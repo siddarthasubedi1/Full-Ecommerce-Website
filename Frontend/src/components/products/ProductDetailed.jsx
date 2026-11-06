@@ -12,6 +12,7 @@ import {
     Heart
 } from "lucide-react";
 import { getProductById } from "../../services/productService";
+import { addToCart } from "../../services/cartService";
 
 export default function ProductDetailed() {
     const { id } = useParams();
@@ -22,7 +23,10 @@ export default function ProductDetailed() {
     const [error, setError] = useState("");
     const [selectedImage, setSelectedImage] = useState("");
     const [quantity, setQuantity] = useState(1);
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [cartError, setCartError] = useState("");
     const [isWishlisted, setIsWishlisted] = useState(false);
+
 
     useEffect(() => {
         let isMounted = true;
@@ -55,7 +59,7 @@ export default function ProductDetailed() {
     const handleQuantityChange = (type) => {
         if (type === "dec" && quantity > 1) {
             setQuantity((prev) => prev - 1);
-        } else if (type === "inc" && quantity < (product?.stock || 10)) {
+        } else if (type === "inc" && quantity < Math.min(product?.stock ?? 0, 99)) {
             setQuantity((prev) => prev + 1);
         }
     };
@@ -69,6 +73,32 @@ export default function ProductDetailed() {
             </div>
         );
     }
+
+
+    const handleAddToCart = async () => {
+        if (!localStorage.getItem("access")) {
+            navigate("/login");
+            return;
+        }
+
+        setAddingToCart(true);
+        setCartError("");
+
+        try {
+            await addToCart(product.id, quantity);
+
+            window.dispatchEvent(new Event("cart-changed"));
+
+            navigate("/cart");
+        } catch (err) {
+            setCartError(
+                err.message || "Failed to add product."
+            );
+        } finally {
+            setAddingToCart(false);
+        }
+    };
+
 
     // ── ERROR / NOT FOUND STATE ────────────────────
     if (error || !product) {
@@ -225,7 +255,7 @@ export default function ProductDetailed() {
                                     <span className="w-10 text-center font-bold text-[#102342]">{quantity}</span>
                                     <button
                                         onClick={() => handleQuantityChange("inc")}
-                                        disabled={quantity >= (product.stock || 10)}
+                                        disabled={quantity >= Math.min(product.stock ?? 0, 99)}
                                         className="p-2.5 text-gray-600 transition hover:text-black disabled:opacity-30"
                                     >
                                         <Plus size={16} />
@@ -236,12 +266,23 @@ export default function ProductDetailed() {
 
                         {/* CTA Buttons */}
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                            {cartError && (
+                                <p role="alert" className="mt-2 text-sm text-red-600">
+                                    {cartError}
+                                </p>
+                            )}
+
                             <button
-                                onClick={() => navigate("/cart")}
-                                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#f97316] py-3.5 text-base font-bold text-white shadow-md shadow-orange-500/20 transition hover:bg-orange-600 active:scale-[0.98]"
+                                onClick={handleAddToCart}
+                                disabled={addingToCart || product.stock <= 0}
+                                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#f97316] py-3.5 text-base font-bold text-white shadow-md shadow-orange-500/20 transition hover:bg-orange-600 active:scale-[0.98] disabled:opacity-50"
                             >
-                                <ShoppingCart size={20} /> Add to Cart
+                                <ShoppingCart size={20} />
+
+                                {addingToCart ? "Adding..." : "Add to Cart"}
                             </button>
+
+
                             <Link
                                 to="/cart"
                                 className="flex flex-1 items-center justify-center rounded-xl bg-[#102342] py-3.5 text-base font-bold text-white shadow-md transition hover:bg-slate-800 active:scale-[0.98]"
