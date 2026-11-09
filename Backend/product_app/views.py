@@ -32,7 +32,7 @@ class CategoryListCreateView(APIView):
 class CategoryDetailView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
-    def get(self, request, pk):
+    def get(self, request, pk=None):
         category = get_object_or_404(Category, pk=pk)
         return Response(CategorySerializer(category).data)
 

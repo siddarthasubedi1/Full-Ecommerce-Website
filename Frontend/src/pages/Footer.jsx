@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 export const Footer = () => {
     return (
-        <footer className="w-full font-sans">
+        <footer className="w-full font-sans ml-10 mr-12 mt-10">
             {/* ── 1. Top Newsletter Banner ── */}
             <div className="relative overflow-hidden bg-[#08162e] px-4 py-6 text-white sm:px-8 lg:px-16">
                 {/* Far-left Orange Angled Decorative Shape */}
