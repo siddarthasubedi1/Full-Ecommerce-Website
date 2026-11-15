@@ -1,10 +1,7 @@
-from decimal import Decimal
-
+from decimal import Decimal, ROUND_HALF_UP
 import requests
-
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -62,7 +59,18 @@ def get_cart_data(cart):
 
     for item in cart.items.all():
         product = get_product(item.product_id)
-        price = Decimal(str(product["price"]))
+        # Get original product price
+        original_price = Decimal(str(product["price"]))
+
+        # Get discount percentage from DummyJSON
+        discount_percentage = Decimal(str(product.get("discountPercentage", 0)))
+
+        # Calculate discounted price
+        price = (
+            original_price * (Decimal("1") - discount_percentage / Decimal("100"))
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        # Calculate total for this cart item
         line_total = price * item.quantity
 
         items.append(
@@ -71,7 +79,12 @@ def get_cart_data(cart):
                 "product_id": item.product_id,
                 "name": product["title"],
                 "image": product.get("thumbnail", ""),
+                # Discounted unit price
                 "price": str(price),
+                # Original price before discount
+                "original_price": str(original_price),
+                # Discount percentage
+                "discount_percentage": str(discount_percentage),
                 "quantity": item.quantity,
                 "stock": product.get("stock", 0),
                 "total": str(line_total),
@@ -127,6 +140,18 @@ class CartView(APIView):
 
         return Response(
             {"message": "Product added successfully."}, status=status.HTTP_200_OK
+        )
+
+        # DELETE: Remove all items from the user's cart
+
+    def delete(self, request):
+        cart = get_object_or_404(Cart, user=request.user)
+
+        # Delete every item belonging to this cart
+        cart.items.all().delete()
+
+        return Response(
+            {"message": "Cart cleared successfully."}, status=status.HTTP_200_OK
         )
 
 

@@ -1,281 +1,530 @@
+# ============================================
+# IMPORTS
+# ============================================
+
 import requests as req
+
+from decimal import Decimal, InvalidOperation
+
+from django.shortcuts import get_object_or_404
+from django.db.models import ProtectedError
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.shortcuts import get_object_or_404
-from django.db.models.deletion import ProtectedError
+from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 
 from .models import Category, Brand, Product
-from .serializers import CategorySerializer, BrandSerializer, ProductSerializer
+from .serializers import (
+    CategorySerializer,
+    BrandSerializer,
+    ProductSerializer,
+)
 from .permissions import IsAdminOrReadOnly
-from rest_framework.permissions import AllowAny
 
-# ── CATEGORIES ──────────────────────────────────
+# ============================================
+# CATEGORY VIEWS
+# ============================================
 
 
 class CategoryListCreateView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
+    # GET: Retrieve all categories
     def get(self, request):
         categories = Category.objects.all()
-        return Response(CategorySerializer(categories, many=True).data)
 
+        serializer = CategorySerializer(categories, many=True)
+
+        return Response(serializer.data)
+
+    # POST: Create a new category
     def post(self, request):
         serializer = CategorySerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryDetailView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
-    def get(self, request, pk=None):
+    # GET: Retrieve one category
+    def get(self, request, pk):
         category = get_object_or_404(Category, pk=pk)
-        return Response(CategorySerializer(category).data)
 
+        serializer = CategorySerializer(category)
+
+        return Response(serializer.data)
+
+    # PUT: Update the complete category
     def put(self, request, pk):
         category = get_object_or_404(Category, pk=pk)
+
         serializer = CategorySerializer(category, data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # PATCH: Partially update a category
     def patch(self, request, pk):
         category = get_object_or_404(Category, pk=pk)
+
         serializer = CategorySerializer(category, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # DELETE: Delete a category
     def delete(self, request, pk):
         category = get_object_or_404(Category, pk=pk)
+
         try:
             category.delete()
+
         except ProtectedError:
             return Response(
                 {"error": "Category still has products."},
                 status=status.HTTP_409_CONFLICT,
             )
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ── BRANDS ──────────────────────────────────────
+# ============================================
+# BRAND VIEWS
+# ============================================
 
 
 class BrandListCreateView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
+    # GET: Retrieve all brands
     def get(self, request):
         brands = Brand.objects.all()
-        return Response(BrandSerializer(brands, many=True).data)
 
+        serializer = BrandSerializer(brands, many=True)
+
+        return Response(serializer.data)
+
+    # POST: Create a new brand
     def post(self, request):
         serializer = BrandSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BrandDetailView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
+    # GET: Retrieve one brand
     def get(self, request, pk):
         brand = get_object_or_404(Brand, pk=pk)
-        return Response(BrandSerializer(brand).data)
 
+        serializer = BrandSerializer(brand)
+
+        return Response(serializer.data)
+
+    # PUT: Update the complete brand
     def put(self, request, pk):
         brand = get_object_or_404(Brand, pk=pk)
+
         serializer = BrandSerializer(brand, data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # PATCH: Partially update a brand
     def patch(self, request, pk):
         brand = get_object_or_404(Brand, pk=pk)
+
         serializer = BrandSerializer(brand, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # DELETE: Delete a brand
     def delete(self, request, pk):
-        get_object_or_404(Brand, pk=pk).delete()
+        brand = get_object_or_404(Brand, pk=pk)
+
+        brand.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ── PRODUCTS ────────────────────────────────────
+# ============================================
+# PRODUCT VIEWS
+# ============================================
 
 
 class ProductListCreateView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
+    # GET: Retrieve and filter local products
     def get(self, request):
-        products = Product.objects.select_related("category", "brand").all()
 
+        # Retrieve active products and related category/brand.
+        products = Product.objects.select_related("category", "brand").filter(
+            is_active=True
+        )
+
+        # Search products by name.
         search = request.query_params.get("search", "").strip()
+
+        # Category filter.
         category = request.query_params.get("category", "").strip()
+
+        # Brand filter.
         brand = request.query_params.get("brand", "").strip()
 
+        # Minimum and maximum price.
+        min_price = request.query_params.get("min_price", "").strip()
+
+        max_price = request.query_params.get("max_price", "").strip()
+
+        # Search by product name.
         if search:
             products = products.filter(name__icontains=search)
+
+        # Filter by category names.
         if category:
-            cat_list = [c.strip() for c in category.split(",") if c.strip()]
-            products = products.filter(category__name__in=cat_list)
+            category_list = [
+                value.strip() for value in category.split(",") if value.strip()
+            ]
+
+            products = products.filter(category__name__in=category_list)
+
+        # Filter by brand names.
         if brand:
-            brand_list = [b.strip() for b in brand.split(",") if b.strip()]
+            brand_list = [value.strip() for value in brand.split(",") if value.strip()]
+
             products = products.filter(brand__name__in=brand_list)
 
-        products = products.order_by("-created_at")
-        return Response(ProductSerializer(products, many=True).data)
+        # Validate and apply price filters.
+        try:
+            minimum = None
+            maximum = None
 
+            if min_price:
+                minimum = Decimal(min_price)
+
+                if minimum < 0:
+                    raise ValueError
+
+            if max_price:
+                maximum = Decimal(max_price)
+
+                if maximum < 0:
+                    raise ValueError
+
+            if minimum is not None and maximum is not None and minimum > maximum:
+                raise ValidationError(
+                    {"price": "Minimum price cannot exceed maximum price."}
+                )
+
+            if minimum is not None:
+                products = products.filter(price__gte=minimum)
+
+            if maximum is not None:
+                products = products.filter(price__lte=maximum)
+
+        except (InvalidOperation, ValueError):
+            raise ValidationError({"price": "Please enter valid non-negative prices."})
+
+        # Show newest products first.
+        products = products.order_by("-created_at")
+
+        # Convert products into JSON.
+        serializer = ProductSerializer(
+            products, many=True, context={"request": request}
+        )
+
+        return Response(serializer.data)
+
+    # POST: Create a new product
     def post(self, request):
-        serializer = ProductSerializer(data=request.data)
+        serializer = ProductSerializer(data=request.data, context={"request": request})
+
         if serializer.is_valid():
             serializer.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProductDetailView(APIView):
     permission_classes = [IsAdminOrReadOnly]
 
+    # GET: Retrieve one product
     def get(self, request, pk):
         product = get_object_or_404(
             Product.objects.select_related("category", "brand"), pk=pk
         )
-        return Response(ProductSerializer(product).data)
 
+        serializer = ProductSerializer(product, context={"request": request})
+
+        return Response(serializer.data)
+
+    # PUT: Update the complete product
     def put(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
-        serializer = ProductSerializer(product, data=request.data)
+
+        serializer = ProductSerializer(
+            product, data=request.data, context={"request": request}
+        )
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # PATCH: Partially update a product
     def patch(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
-        serializer = ProductSerializer(product, data=request.data, partial=True)
+
+        serializer = ProductSerializer(
+            product, data=request.data, partial=True, context={"request": request}
+        )
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # DELETE: Delete a product
     def delete(self, request, pk):
-        get_object_or_404(Product, pk=pk).delete()
+        product = get_object_or_404(Product, pk=pk)
+
+        product.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ── PROXY (DummyJSON) ──────────────────────────
+# ============================================
+# DUMMYJSON PROXY VIEWS
+# These endpoints retrieve external products.
+# They are separate from our local products.
+# ============================================
 
 
 class ProxyProductListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+
         search = request.query_params.get("search", "").strip()
+
         category = request.query_params.get("category", "").strip()
+
         brand = request.query_params.get("brand", "").strip()
+
         min_price = request.query_params.get("min_price", "").strip()
+
         max_price = request.query_params.get("max_price", "").strip()
 
+        # Choose the external API URL.
         if search:
-            url = f"https://dummyjson.com/products/search?q={search}&limit=200"
+            url = "https://dummyjson.com/products/search"
+
+            params = {"q": search, "limit": 200}
+
         elif category:
-            url = f"https://dummyjson.com/products/category/{category}?limit=200"
+            category_slug = category.split(",")[0].strip()
+
+            url = "https://dummyjson.com/products/category/" f"{category_slug}"
+
+            params = {"limit": 200}
+
         else:
-            url = "https://dummyjson.com/products?limit=200"
+            url = "https://dummyjson.com/products"
+
+            params = {"limit": 200}
 
         try:
-            res = req.get(url, timeout=10)
+            res = req.get(url, params=params, timeout=10)
+
+            res.raise_for_status()
+
             data = res.json()
+
             products = data.get("products", [])
-        except Exception:
-            return Response({"error": "Failed to fetch products"}, status=500)
 
-        if search and category:
-            cats = [c.strip().lower() for c in category.split(",")]
-            products = [p for p in products if p.get("category", "").lower() in cats]
+        except req.RequestException:
+            return Response(
+                {"error": "Failed to fetch products."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
+        # Apply category filter.
+        if category:
+            categories = [value.strip().lower() for value in category.split(",")]
+
+            products = [
+                product
+                for product in products
+                if product.get("category", "").lower() in categories
+            ]
+
+        # Apply brand filter.
         if brand:
-            brands = [b.strip().lower() for b in brand.split(",")]
-            products = [p for p in products if p.get("brand", "").lower() in brands]
+            brands = [value.strip().lower() for value in brand.split(",")]
 
+            products = [
+                product
+                for product in products
+                if product.get("brand", "").lower() in brands
+            ]
+
+        # Apply price filters.
         try:
             if min_price:
+                minimum = float(min_price)
+
+                if minimum < 0:
+                    raise ValueError
+
                 products = [
-                    p for p in products if p.get("price", 0) >= float(min_price)
+                    product
+                    for product in products
+                    if product.get("price", 0) >= minimum
                 ]
+
             if max_price:
+                maximum = float(max_price)
+
+                if maximum < 0:
+                    raise ValueError
+
                 products = [
-                    p for p in products if p.get("price", 0) <= float(max_price)
+                    product
+                    for product in products
+                    if product.get("price", 0) <= maximum
                 ]
+
         except ValueError:
-            pass
+            return Response(
+                {"error": "Please enter valid non-negative prices."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return Response(
-            {
-                "count": len(products),
-                "results": products,
-            }
-        )
+        return Response({"count": len(products), "results": products})
 
 
-# ── PROXY PRODUCT DETAIL ───────────────────────
+# ============================================
+# DUMMYJSON PRODUCT DETAIL
+# ============================================
 
 
 class ProxyProductDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
+
         try:
             res = req.get(f"https://dummyjson.com/products/{pk}", timeout=10)
+
             if res.status_code == 404:
                 return Response(
-                    {"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND
+                    {"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND
                 )
 
-            data = res.json()
-            return Response(data)
-        except Exception:
+            res.raise_for_status()
+
+            return Response(res.json())
+
+        except req.RequestException:
             return Response(
-                {"error": "Failed to fetch product detail"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Failed to fetch product details."},
+                status=status.HTTP_502_BAD_GATEWAY,
             )
+
+
+# ============================================
+# DUMMYJSON CATEGORY LIST
+# ============================================
 
 
 class ProxyCategoryListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+
         try:
             res = req.get("https://dummyjson.com/products/categories", timeout=10)
+
+            res.raise_for_status()
+
             data = res.json()
-            # DummyJSON returns [{"slug": "beauty", "name": "Beauty", "url": "..."}]
-            results = [{"id": i, "name": item["slug"]} for i, item in enumerate(data)]
+
+            results = [
+                {"id": index, "name": item["slug"]} for index, item in enumerate(data)
+            ]
+
             return Response(results)
-        except Exception:
-            return Response({"error": "Failed to fetch categories"}, status=500)
+
+        except (req.RequestException, ValueError, KeyError):
+            return Response(
+                {"error": "Failed to fetch categories."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+
+# ============================================
+# DUMMYJSON BRAND LIST
+# ============================================
 
 
 class ProxyBrandListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+
         try:
             res = req.get("https://dummyjson.com/products?limit=200", timeout=10)
+
+            res.raise_for_status()
+
             data = res.json()
+
             products = data.get("products", [])
-            # Extract unique brands
-            brands = sorted(set(p.get("brand", "") for p in products if p.get("brand")))
-            results = [{"id": i, "name": b} for i, b in enumerate(brands)]
+
+            # Extract unique brand names.
+            brands = sorted(
+                {product.get("brand") for product in products if product.get("brand")}
+            )
+
+            results = [
+                {"id": index, "name": brand} for index, brand in enumerate(brands)
+            ]
+
             return Response(results)
-        except Exception:
-            return Response({"error": "Failed to fetch brands"}, status=500)
+
+        except (req.RequestException, ValueError):
+            return Response(
+                {"error": "Failed to fetch brands."}, status=status.HTTP_502_BAD_GATEWAY
+            )

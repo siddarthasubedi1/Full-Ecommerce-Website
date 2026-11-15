@@ -114,3 +114,11 @@ export const removeFromCart = (productId) => {
         method: "DELETE",
     });
 };
+
+
+// DELETE - Remove all products from the cart
+export const clearCart = () => {
+    return cartRequest("", {
+        method: "DELETE",
+    });
+};

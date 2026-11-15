@@ -12,6 +12,7 @@ import {
     getCart,
     updateCartQuantity,
     removeFromCart,
+    clearCart,
 } from "../services/cartService";
 
 
@@ -85,6 +86,33 @@ export default function Cartpage() {
         }
     };
 
+    // Remove all products from the cart
+    const handleClearCart = async () => {
+        // Ask the user before clearing the cart
+        const confirmed = window.confirm(
+            "Are you sure you want to clear your cart?"
+        );
+
+        if (!confirmed) return;
+
+        setUpdating(true);
+        setError("");
+
+        try {
+            await clearCart();
+
+            // Refresh the cart after clearing
+            await fetchCart();
+
+            // Update the cart count elsewhere in the application
+            window.dispatchEvent(new Event("cart-changed"));
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
@@ -97,14 +125,28 @@ export default function Cartpage() {
         <div className="min-h-screen bg-[#f8f7f6] py-12">
             <div className="mx-auto max-w-6xl px-4">
 
-                <div className="flex items-center gap-3 mb-8">
-                    <ShoppingCart
-                        size={30}
-                        className="text-[#f97316]"
-                    />
-                    <h1 className="text-3xl font-bold text-[#102342]">
-                        Your Shopping Cart
-                    </h1>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                    <div className="flex items-center gap-3">
+                        <ShoppingCart
+                            size={30}
+                            className="text-[#f97316]"
+                        />
+
+                        <h1 className="text-3xl font-bold text-[#102342]">
+                            Your Shopping Cart
+                        </h1>
+                    </div>
+
+                    {/* Show this button only when the cart has products */}
+                    {cart && cart.items.length > 0 && (
+                        <button
+                            onClick={handleClearCart}
+                            disabled={updating}
+                            className="bg-red-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50"
+                        >
+                            {updating ? "Please wait..." : "Clear Cart"}
+                        </button>
+                    )}
                 </div>
 
                 {error && (
@@ -169,9 +211,23 @@ export default function Cartpage() {
                                             {item.name}
                                         </Link>
 
+                                        {/* Discounted price */}
                                         <p className="text-[#f97316] font-bold mt-2">
                                             ${Number(item.price).toFixed(2)}
                                         </p>
+
+                                        {/* Original price and discount */}
+                                        {Number(item.discount_percentage) > 0 && (
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                <span className="line-through">
+                                                    ${Number(item.original_price).toFixed(2)}
+                                                </span>
+
+                                                <span className="ml-2 font-medium text-green-700">
+                                                    {Number(item.discount_percentage)}% off
+                                                </span>
+                                            </p>
+                                        )}
 
                                         <div className="flex flex-wrap items-center gap-3 mt-4">
 

@@ -3,6 +3,7 @@ from django.conf import settings
 
 
 class Cart(models.Model):
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cart"
     )
@@ -14,8 +15,10 @@ class Cart(models.Model):
 
 
 class CartItem(models.Model):
+
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
 
+    # DummyJSON external product ID
     product_id = models.PositiveIntegerField()
 
     quantity = models.PositiveIntegerField(default=1)
