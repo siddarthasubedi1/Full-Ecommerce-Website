@@ -219,7 +219,39 @@ Run these commands from the `Frontend/` directory.
 
 ## 📸 Screenshots
 
-Screenshots of the storefront, product details, shopping cart, wishlist, order history, and admin dashboard will be added here.
+Here are some screenshots of the Full-Stack E-Commerce Website.
+
+### 🏠 Homepage
+![Homepage](docs/screenshots/homepage.png)
+
+### 🛍️ Products
+![Products](docs/screenshots/products.png)
+
+### 📦 Product Details
+![Product Details](docs/screenshots/product-details.png)
+
+### 🛒 Shopping Cart
+![Shopping Cart](docs/screenshots/cart.png)
+
+### 👤 User Authentication
+
+**Login**
+![Login](docs/screenshots/login.png)
+
+**Register**
+![Register](docs/screenshots/register.png)
+
+### 👨‍💻 User Profile
+![Profile](docs/screenshots/profile.png)
+
+### 📋 Order History
+![Orders](docs/screenshots/orders.png)
+
+### ℹ️ About
+![About](docs/screenshots/about.png)
+
+### 📞 Contact
+![Contact](docs/screenshots/contact.png)
 
 ## 🚧 Project Status
 
