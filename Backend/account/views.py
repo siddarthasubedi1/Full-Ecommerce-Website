@@ -19,6 +19,7 @@ from .serializers import (
     UserDetailSerializer,
     UserLoginSerializer,
     UserRegistrationSerializer,
+    UserProfileSerializer,
 )
 
 
@@ -155,4 +156,36 @@ class UserChangePasswordView(APIView):
 
         return Response(
             {"message": "Password changed successfully. " "Please log in again."}
+        )
+
+
+# View for the logged-in user's profile
+class UserProfileView(APIView):
+
+    # Only authenticated users can access this API
+    permission_classes = [IsAuthenticated]
+
+    # GET: Display the logged-in user's profile
+    def get(self, request):
+
+        # request.user represents the currently logged-in user
+        serializer = UserProfileSerializer(request.user)
+
+        return Response(serializer.data)
+
+    # PATCH: Update the logged-in user's profile
+    def patch(self, request):
+
+        serializer = UserProfileSerializer(
+            request.user, data=request.data, partial=True
+        )
+
+        # Check whether the submitted data is valid
+        serializer.is_valid(raise_exception=True)
+
+        # Save updated profile details
+        serializer.save()
+
+        return Response(
+            {"message": "Profile updated successfully.", "data": serializer.data}
         )

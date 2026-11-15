@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const BASE_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+import { API_BASE_URL } from "../../services/apiConfig";
 
 export default function RegisterPage() {
     const [name, setName] = useState("");
@@ -20,7 +20,7 @@ export default function RegisterPage() {
         if (!tc) { setError("You must accept the terms"); return; }
         setLoading(true);
         try {
-            const res = await fetch(`${BASE_URL}/account/register/`, {
+            const res = await fetch(`${API_BASE_URL}/account/register/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password, password2, tc }),

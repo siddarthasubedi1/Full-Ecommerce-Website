@@ -140,3 +140,25 @@ class UserChangePasswordSerializer(serializers.Serializer):
         user.save(update_fields=["password"])
 
         return user
+
+
+# Serializer for viewing and updating the logged-in user's profile
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+
+        # Fields that the frontend is allowed to see
+        fields = [
+            "id",
+            "name",
+            "email",
+            "created_at",
+        ]
+
+        # These fields cannot be changed from the profile page
+        read_only_fields = [
+            "id",
+            "email",
+            "created_at",
+        ]

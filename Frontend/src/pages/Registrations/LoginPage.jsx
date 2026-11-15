@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const BASE_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+import { API_BASE_URL } from "../../services/apiConfig";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -17,13 +17,13 @@ export default function LoginPage() {
         setError("");
         setLoading(true);
         try {
-            const res = await fetch(`${BASE_URL}/account/login/`, {
+            const res = await fetch(`${API_BASE_URL}/account/login/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.detail || data.message || "Login failed");
+            if (!res.ok) throw new Error(data.error || data.detail || data.message || "Login failed");
             localStorage.setItem("access", data.token.access);
             localStorage.setItem("refresh", data.token.refresh);
             window.dispatchEvent(new Event("auth-changed"));

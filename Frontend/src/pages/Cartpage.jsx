@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     ShoppingCart,
     Minus,
@@ -14,6 +14,7 @@ import {
     removeFromCart,
     clearCart,
 } from "../services/cartService";
+import { placeOrder } from "../services/orderService";
 
 
 export default function Cartpage() {
@@ -27,6 +28,7 @@ export default function Cartpage() {
         const data = await getCart();
         setCart(data);
     };
+    const navigate = useNavigate();
 
     useEffect(() => {
         let active = true;
@@ -85,6 +87,46 @@ export default function Cartpage() {
             setUpdating(false);
         }
     };
+
+
+    // Place order using the Django checkout API
+    const handleCheckout = async () => {
+
+        // Prevent checkout if cart is empty
+        if (!cart || cart.items.length === 0) {
+            setError("Your cart is empty.");
+            return;
+        }
+
+        setUpdating(true);
+        setError("");
+
+        try {
+
+            // Send POST request to Django
+            const response = await placeOrder();
+
+            // Update the Navbar cart counter
+            window.dispatchEvent(new Event("cart-changed"));
+
+            // Navigate to order history after success
+            navigate("/my-orders", {
+                state: {
+                    successMessage: response.message,
+                    order: response.order,
+                },
+            });
+
+        } catch (err) {
+
+            setError(err.message);
+
+        } finally {
+
+            setUpdating(false);
+        }
+    };
+
 
     // Remove all products from the cart
     const handleClearCart = async () => {
@@ -333,12 +375,15 @@ export default function Cartpage() {
                                 Shipping, tax and checkout are not implemented yet.
                             </p>
 
+
                             <button
-                                disabled
-                                className="w-full bg-[#102342] text-white py-3 rounded-xl font-semibold mt-6 opacity-50 cursor-not-allowed"
+                                onClick={handleCheckout}
+                                disabled={updating || !cart || cart.items.length === 0}
+                                className="w-full bg-[#102342] text-white py-3 rounded-xl font-semibold mt-6 hover:bg-[#1d3557] transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Proceed to Checkout
+                                {updating ? "Processing Order..." : "Proceed to Checkout"}
                             </button>
+
 
                             <Link
                                 to="/product"

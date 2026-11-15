@@ -14,6 +14,10 @@ import Aboutpage from "./pages/Aboutpage";
 import Contactpage from "./pages/Contactpage";
 import Cartpage from "./pages/Cartpage";
 import ProductDetail from "./components/products/ProductDetailed";
+import OrderHistoryPage from "./pages/OrderHistoryPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import WishlistPage from "./pages/wishlist/WishlistPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const App = () => {
   return (
@@ -25,9 +29,13 @@ const App = () => {
         <Route path="/about" element={<Aboutpage />} />
         <Route path="/contact" element={<Contactpage />} />
         <Route path="/cart" element={<Cartpage />} />
+        <Route path="/my-orders" element={<OrderHistoryPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/productdetails/:id" element={<ProductDetail />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
       <Footer />
     </BrowserRouter>

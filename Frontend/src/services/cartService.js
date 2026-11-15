@@ -1,8 +1,5 @@
 
-const BASE_URL = (
-    import.meta.env.VITE_API_URL ||
-    "http://127.0.0.1:8000"
-).replace(/\/$/, "");
+import { API_BASE_URL } from "./apiConfig";
 
 
 async function cartRequest(endpoint, options = {}) {
@@ -13,7 +10,7 @@ async function cartRequest(endpoint, options = {}) {
     }
 
     const sendRequest = (token) => {
-        return fetch(`${BASE_URL}/cart/${endpoint}`, {
+        return fetch(`${API_BASE_URL}/cart/${endpoint}`, {
             ...options,
             headers: {
                 "Content-Type": "application/json",
@@ -30,7 +27,7 @@ async function cartRequest(endpoint, options = {}) {
 
         if (refresh) {
             const refreshResponse = await fetch(
-                `${BASE_URL}/account/token/refresh/`,
+                `${API_BASE_URL}/account/token/refresh/`,
                 {
                     method: "POST",
                     headers: {

@@ -186,10 +186,12 @@ class ProductListCreateView(APIView):
     def get(self, request):
 
         # Retrieve active products and related category/brand.
-        products = Product.objects.select_related("category", "brand").filter(
-            is_active=True
-        )
+        products = Product.objects.select_related("category", "brand")
 
+        # Customers see active products only.
+        # Administrators can see all products.
+        if not req.user.is_staff:
+            products = products.filter(is_active=True)
         # Search products by name.
         search = request.query_params.get("search", "").strip()
 
