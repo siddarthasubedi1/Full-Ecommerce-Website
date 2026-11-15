@@ -114,6 +114,8 @@ class UserRegistrationView(APIView):
 
 class UserLoginView(APIView):
 
+    # Login is public; do not reject the request because a client sent an old JWT.
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -135,6 +137,12 @@ class UserLoginView(APIView):
         return Response(
             {
                 "message": "Login successful.",
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "is_admin": user.is_admin,
+                },
                 "token": get_tokens_for_user(user),
             }
         )

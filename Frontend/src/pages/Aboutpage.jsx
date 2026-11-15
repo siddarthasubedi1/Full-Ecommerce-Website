@@ -2,6 +2,7 @@
 import trolley from "../assets/trolley.jpg";
 import storebag from "../assets/store-bag.png";
 import { ArrowRight, Truck, ShieldCheck, Headset, Tag, ShoppingBag, Star, RotateCcw, Heart } from 'lucide-react'
+import { Link } from "react-router-dom";
 
 export default function Aboutpage() {
     return (
@@ -103,9 +104,11 @@ export default function Aboutpage() {
                     </p>
 
                     {/* Shop Now Button */}
-                    <button className="mt-4 flex items-center gap-2 rounded-full bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-orange-600">
-                        Shop Now <ArrowRight className="h-4 w-4" />
-                    </button>
+                    <Link to="/product">
+                        <button className="mt-4 flex items-center gap-2 rounded-full bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-orange-600">
+                            Shop Now <ArrowRight className="h-4 w-4" />
+                        </button>
+                    </Link>
                 </div>
 
                 {/* 3. Right Highlights Card */}

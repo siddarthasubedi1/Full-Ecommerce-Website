@@ -441,8 +441,8 @@ export default function AdminDashboard() {
                             type="button"
                             onClick={() => setActiveTab(value)}
                             className={`whitespace - nowrap rounded - lg px - 4 py - 3 text - sm font - semibold transition ${activeTab === value
-                                    ? "bg-red-600 text-white"
-                                    : "text-gray-600 hover:bg-gray-100"
+                                ? "bg-red-600 text-white"
+                                : "text-gray-600 hover:bg-gray-100"
                                 } `}
                         >
                             {label}

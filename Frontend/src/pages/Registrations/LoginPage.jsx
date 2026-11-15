@@ -27,7 +27,8 @@ export default function LoginPage() {
             localStorage.setItem("access", data.token.access);
             localStorage.setItem("refresh", data.token.refresh);
             window.dispatchEvent(new Event("auth-changed"));
-            navigate("/");
+            // Administrators go directly to the dashboard; customers go to the storefront.
+            navigate(data.user?.is_admin ? "/admin-dashboard" : "/");
         } catch (err) {
             setError(err.message);
         } finally {

@@ -190,7 +190,7 @@ class ProductListCreateView(APIView):
 
         # Customers see active products only.
         # Administrators can see all products.
-        if not req.user.is_staff:
+        if not request.user.is_staff:
             products = products.filter(is_active=True)
         # Search products by name.
         search = request.query_params.get("search", "").strip()
