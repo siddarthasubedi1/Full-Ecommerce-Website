@@ -1,16 +1,109 @@
-# React + Vite
+# 🛍️ E-Commerce Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend of the Full-Stack E-Commerce Website, built using React, Vite, and Tailwind CSS. It provides a responsive shopping interface connected to a Django REST Framework backend.
 
-Currently, two official plugins are available:
+## 🚀 Technologies
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19
+- Vite
+- Tailwind CSS 4
+- React Router
+- Axios
+- Lucide React
+- React Slick
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Home page and product browsing
+- Product search and filtering
+- Product details
+- User registration and login
+- Shopping cart
+- Wishlist
+- Order history
+- User profile
+- Product reviews
+- Admin dashboard
+- Responsive navigation and page layouts
 
-## Expanding the ESLint configuration
+## 📁 Folder Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```text
+src/
+├── assets/          # Images and static assets
+├── components/      # Reusable UI components
+│   ├── home/
+│   ├── orders/
+│   ├── products/
+│   └── Registrations/
+├── hooks/           # Custom React hooks
+├── pages/           # Application pages
+│   ├── admin/
+│   ├── product/
+│   ├── profile/
+│   ├── Registrations/
+│   └── wishlist/
+├── services/        # Backend API service functions
+├── App.jsx          # Application routes
+├── index.css        # Global styles
+└── main.jsx         # React entry point
+```
+
+## ⚙️ Installation
+
+### 1. Open the frontend directory
+
+```bash
+cd Frontend
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Start the development server
+
+```bash
+npm run dev
+```
+
+Open the local URL displayed in your terminal. By default, Vite uses:
+
+```text
+http://localhost:5173/
+```
+
+## 🔗 Backend Connection
+
+The frontend communicates with the Django REST Framework backend using Axios.
+
+The API base URL is configured in:
+
+```text
+src/services/apiConfig.js
+```
+
+Current local backend address:
+
+```text
+http://127.0.0.1:8000
+```
+
+Make sure the Django backend is running before using features that require API requests.
+
+## 📜 Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build production files |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+
+## 👨‍💻 Development
+
+The frontend uses reusable components, custom hooks, and service modules to organize the application and communicate with backend APIs.
+
+For backend installation and complete project information, see the main [README](../README.md).
